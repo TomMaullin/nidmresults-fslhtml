@@ -1,5 +1,8 @@
 from setuptools import setup, find_packages
+<<<<<<< HEAD
 import pip
+=======
+>>>>>>> FSLslicer
 
 readme = "Empty for now"
 
