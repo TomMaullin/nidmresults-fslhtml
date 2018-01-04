@@ -316,7 +316,7 @@ def queryExcursionSetNifti(graph): #Selects excursoion set NIFTI URI
                        ?y prov:wasGeneratedBy ?x . ?y a nidm_ExcursionSetMap: . ?y prov:atLocation ?image}"""
 
         queryResult = graph.query(query)
-        return(queryResult)
+        return(addQueryToList(queryResult))
 
 def queryExcursionSetImage(graph): #Selects excursion images
 
@@ -404,6 +404,7 @@ def formatClusterStats(g, excName):
                prefix nidm_clusterLabelID: <http://purl.org/nidash/nidm#NIDM_0000082>
                prefix nidm_equivalentZStatistic: <http://purl.org/nidash/nidm#NIDM_0000092>
                prefix prov: <http://www.w3.org/ns/prov#>
+               prefix nidm_coordinateVector: <http://purl.org/nidash/nidm#NIDM_0000086>
                
                SELECT ?peakStat ?clus_index ?loc
 
@@ -501,7 +502,7 @@ def generateExcPage(outdir, excName, conData):
         #Make the cluster statistics table.
         excPage += raw("<table cellspacing='3' border='3'><tbody>")
         excPage += raw("<tr><th>Cluster Index</th><th>Voxels</th><th>Z-MAX</th><th>Z-MAX X (mm)</th><th>Z-MAX Y (mm)</th><th>Z-MAX Z (mm)</th></tr>")
-        
+
         #Add the cluster statistics data into the table.
         for cluster in range(0, len(conData['clusSizes'])):
                 #New row
