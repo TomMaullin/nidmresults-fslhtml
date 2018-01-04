@@ -702,7 +702,8 @@ def generatePostStatsHTML(graph,statsFilePath = "stats.html",postStatsFilePath =
 		while i < len(excursionSetNifti):
 		
 			postStats += p("%s" % contrastName[i])
-			postStats += img(src = generateSliceImage_SPM(os.path.join(os.path.split(postStatsFilePath)[0], excursionSetNifti[i])))
+			sliceImage = generateSliceImage_SPM(os.path.join(os.path.split(postStatsFilePath)[0], excursionSetNifti[i]))
+			postStats += img(src = 'data:image/jpg;base64,' + encodeImage(sliceImage).decode())
 			i = i + 1
 
 	if askSpm(graph) == True and len(excursionSetNifti) < len(contrastName):
@@ -717,7 +718,8 @@ def generatePostStatsHTML(graph,statsFilePath = "stats.html",postStatsFilePath =
 			i = i + 1
 
 		postStats += p('%s' % conString)
-		postStats += img(src = generateSliceImage_SPM(os.path.join(os.path.split(postStatsFilePath)[0], excursionSetNifti[0])))
+		sliceImage = generateSliceImage_SPM(os.path.join(os.path.split(postStatsFilePath)[0], excursionSetNifti[i]))
+		postStats += img(src = 'data:image/jpg;base64,' + encodeImage(sliceImage).decode())
 
 			
 	postStatsFile = open(postStatsFilePath, "x")
