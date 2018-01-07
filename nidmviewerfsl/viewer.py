@@ -12,7 +12,6 @@ from dominate.util import raw
 import errno
 from nidmviewerfsl.pageStyling import *
 from nidmviewerfsl.callSlicer import *
-import math
 
 def printQuery(query): #Generic function for printing the results of a query - used for testing
 
@@ -201,25 +200,22 @@ def checkHeightThreshold(graph): #checks for corrected height threshold
 		
 	return(answer)
 
-def checkExtentThreshold(graph): #checks for extent threshold
+def checkExtentThreshold(graph): #checks for corrected extent threshold
 
 	query = """prefix prov: <http://www.w3.org/ns/prov#>
                prefix nidm_ExtentThreshold: <http://purl.org/nidash/nidm#NIDM_0000026>
                prefix nidm_Inference: <http://purl.org/nidash/nidm#NIDM_0000049>
                prefix obo_qvalue: <http://purl.obolibrary.org/obo/OBI_0001442>
                prefix obo_FWERadjustedpvalue: <http://purl.obolibrary.org/obo/OBI_0001265>
-               prefix nidm_PValueUncorrected: <http://purl.org/nidash/nidm#NIDM_0000160>
-               prefix nidm_equivalentThreshold: <http://purl.org/nidash/nidm#NIDM_0000161>
 
-               SELECT ?x {?y a nidm_Inference: . ?y prov:used ?x .
-               {?x a nidm_ExtentThreshold: . ?x a obo_qvalue: .} UNION
-               {?x a nidm_ExtentThreshold: . ?x a obo_FWERadjustedpvalue: .} UNION
-               {?x a nidm_ExtentThreshold: . ?x a nidm_equivalentThreshold: .} UNION
-               {?x a nidm_ExtentThreshold: . ?x a nidm_PValueUncorrected: .}}"""
+               ASK {?y a nidm_Inference: . ?y prov:used ?x . {?x a nidm_ExtentThreshold: . ?x a obo_qvalue: .} UNION {?x a nidm_ExtentThreshold: . ?x a obo_FWERadjustedpvalue: .}}"""
 			   
 	queryResult = graph.query(query)
+	for row in queryResult:
 		
-	return(queryResult)
+		answer = row
+		
+	return(answer)
 	
 def selectExtentThreshValue(graph): #selects the value of the extent threshold used by nidm_Inference
 
@@ -397,97 +393,46 @@ def statisticImageString(statImage):
 	
 		return("Z (Gaussianised T/F)")
 
-def formatClusterStats(outdir, g, excName):
+def formatClusterStats(g, excName):
 
-        clusterData = {}
-        
         #---------------------------------------------------------------------------------------------------------
         #First we gather data for peaks table.
         #---------------------------------------------------------------------------------------------------------
 
-        clustThresh = checkExtentThreshold(g) or outdir == '/home/tom/Documents/Repos/nidmresults-fslhtml/Tests/data/ex_spm_thr_clustfwep05_test'
+        peak_query = """prefix nidm_SupraThresholdCluster: <http://purl.org/nidash/nidm#NIDM_0000070>
+               prefix nidm_clusterSizeInVoxels: <http://purl.org/nidash/nidm#NIDM_0000084>
+               prefix nidm_clusterLabelID: <http://purl.org/nidash/nidm#NIDM_0000082>
+               prefix nidm_equivalentZStatistic: <http://purl.org/nidash/nidm#NIDM_0000092>
+               prefix prov: <http://www.w3.org/ns/prov#>
+               prefix nidm_coordinateVector: <http://purl.org/nidash/nidm#NIDM_0000086>
+               
+               SELECT ?peakStat ?clus_index ?loc
 
-        if clustThresh:
+               WHERE {{?exc a nidm_ExcursionSetMap: . ?clus prov:wasDerivedFrom ?exc . ?clus a nidm_SupraThresholdCluster: .
+                       ?exc prov:atLocation ?conMap . ?clus nidm_clusterLabelID: ?clus_index .
+                       ?peak prov:wasDerivedFrom ?clus . ?peak nidm_equivalentZStatistic: ?peakStat .
+                       ?peak prov:atLocation ?locObj . ?locObj nidm_coordinateVector: ?loc}
 
-                #We must include cluster p values in the query.
-                peak_query = """prefix nidm_SupraThresholdCluster: <http://purl.org/nidash/nidm#NIDM_0000070>
-                       prefix nidm_clusterSizeInVoxels: <http://purl.org/nidash/nidm#NIDM_0000084>
-                       prefix nidm_clusterLabelID: <http://purl.org/nidash/nidm#NIDM_0000082>
-                       prefix nidm_equivalentZStatistic: <http://purl.org/nidash/nidm#NIDM_0000092>
-                       prefix prov: <http://www.w3.org/ns/prov#>
-                       prefix nidm_coordinateVector: <http://purl.org/nidash/nidm#NIDM_0000086>
-                       prefix nidm_pValueUncorrected: <http://purl.org/nidash/nidm#NIDM_0000116> 
-                       prefix nidm_pValueFWER: <http://purl.org/nidash/nidm#NIDM_0000115> 
-                       prefix nidm_qValueFDR: <http://purl.org/nidash/nidm#NIDM_0000119>
-                       
-                       
-                       SELECT ?peakStat ?clus_index ?loc
+               FILTER(STR(?conMap) = '""" + excName + """'^^xsd:string)}"""
 
-                       WHERE {{?exc a nidm_ExcursionSetMap: . ?clus prov:wasDerivedFrom ?exc . ?clus a nidm_SupraThresholdCluster: .
-                               ?exc prov:atLocation ?conMap . ?clus nidm_clusterLabelID: ?clus_index .
-                               ?peak prov:wasDerivedFrom ?clus . ?peak nidm_equivalentZStatistic: ?peakStat .
-                               ?peak prov:atLocation ?locObj . ?locObj nidm_coordinateVector: ?loc .}
+        #Run the peak query
+        peakQueryResult = g.query(peak_query)
 
-                       FILTER(STR(?conMap) = '""" + excName + """'^^xsd:string)}"""
-                
-                #Run the peak query
-                peakQueryResult = g.query(peak_query)
-                
-                #Retrieve query results.
-                clusterIndicesForPeaks = [int("%0.0s %s %0.0s" % row) for row in peakQueryResult]
-                peakZstats = [float("%s %0.0s %0.0s" % row) for row in peakQueryResult]
-                locations = ["%0.0s %0.0s %s" % row for row in peakQueryResult]
+        #Retrieve query results.
+        clusterIndicesForPeaks = [int("%0.0s %s %0.0s" % row) for row in peakQueryResult]
+        peakZstats = ["%s %0.0s %0.0s" % row for row in peakQueryResult]
+        locations = ["%0.0s %0.0s %s" % row for row in peakQueryResult]
 
-                #Obtain permutation used to sort the results in order of descending cluster index and then descending peak statistic size.
-                peaksSortPermutation = sorted(range(len(clusterIndicesForPeaks)), reverse = True, key=lambda k: (-clusterIndicesForPeaks[k], peakZstats[k]))
+        #Remove any spaces from peak Z stats
+        peakZstats = [float(peak.replace(" ", "")) for peak in peakZstats]
 
-                #Sort all peak data using this permutation.
-                sortedPeaksZstatsArray = [peakZstats[i] for i in peaksSortPermutation]
-                sortedClusIndicesForPeaks = [clusterIndicesForPeaks[i] for i in peaksSortPermutation]
-                sortedPeakLocations = [locations[i] for i in peaksSortPermutation]
+        #Obtain permutation used to sort the results in order of descending cluster index and then descending peak statistic size.
+        peaksSortPermutation = sorted(range(len(clusterIndicesForPeaks)), reverse = True, key=lambda k: (-clusterIndicesForPeaks[k], peakZstats[k]))
 
-                clusterData['peakZstats'] = sortedPeaksZstatsArray
-                clusterData['peakClusIndices'] = sortedClusIndicesForPeaks
-                clusterData['peakLocations'] = sortedPeakLocations
-                
-        else:
-                
-                #We must not include cluster p values in the query.
-                peak_query = """prefix nidm_SupraThresholdCluster: <http://purl.org/nidash/nidm#NIDM_0000070>
-                       prefix nidm_clusterSizeInVoxels: <http://purl.org/nidash/nidm#NIDM_0000084>
-                       prefix nidm_clusterLabelID: <http://purl.org/nidash/nidm#NIDM_0000082>
-                       prefix nidm_equivalentZStatistic: <http://purl.org/nidash/nidm#NIDM_0000092>
-                       prefix prov: <http://www.w3.org/ns/prov#>
-                       prefix nidm_coordinateVector: <http://purl.org/nidash/nidm#NIDM_0000086>
-                       
-                       SELECT ?peakStat ?clus_index ?loc
-
-                       WHERE {{?exc a nidm_ExcursionSetMap: . ?clus prov:wasDerivedFrom ?exc . ?clus a nidm_SupraThresholdCluster: .
-                               ?exc prov:atLocation ?conMap . ?clus nidm_clusterLabelID: ?clus_index .
-                               ?peak prov:wasDerivedFrom ?clus . ?peak nidm_equivalentZStatistic: ?peakStat .
-                               ?peak prov:atLocation ?locObj . ?locObj nidm_coordinateVector: ?loc}
-
-                       FILTER(STR(?conMap) = '""" + excName + """'^^xsd:string)}"""
-
-                #Run the peak query
-                peakQueryResult = g.query(peak_query)
-
-                #Retrieve query results.
-                clusterIndicesForPeaks = [int("%0.0s %s %0.0s" % row) for row in peakQueryResult]
-                peakZstats = [float("%s %0.0s %0.0s" % row) for row in peakQueryResult]
-                locations = ["%0.0s %0.0s %s" % row for row in peakQueryResult]
-
-                #Obtain permutation used to sort the results in order of descending cluster index and then descending peak statistic size.
-                peaksSortPermutation = sorted(range(len(clusterIndicesForPeaks)), reverse = True, key=lambda k: (-clusterIndicesForPeaks[k], peakZstats[k]))
-
-                #Sort all peak data using this permutation.
-                sortedPeaksZstatsArray = [peakZstats[i] for i in peaksSortPermutation]
-                sortedClusIndicesForPeaks = [clusterIndicesForPeaks[i] for i in peaksSortPermutation]
-                sortedPeakLocations = [locations[i] for i in peaksSortPermutation]
-
-                clusterData['peakZstats'] = sortedPeaksZstatsArray
-                clusterData['peakClusIndices'] = sortedClusIndicesForPeaks
-                clusterData['peakLocations'] = sortedPeakLocations
+        #Sort all peak data using this permutation.
+        sortedPeaksZstatsArray = [peakZstats[i] for i in peaksSortPermutation]
+        sortedClusIndicesForPeaks = [clusterIndicesForPeaks[i] for i in peaksSortPermutation]
+        sortedPeakLocations = [locations[i] for i in peaksSortPermutation]
 
         #---------------------------------------------------------------------------------------------------------
         #Second we gather data for cluster table.
@@ -533,12 +478,13 @@ def formatClusterStats(outdir, g, excName):
         sortedMaxPeakZstats = [highestPeakZArray[sortedClusIndicesArray[i]-1] for i in list(range(0, len(clusterIndices)))]
         sortedMaxPeakLocations = [highestPeakLocations[sortedClusIndicesArray[i]-1] for i in list(range(0, len(clusterIndices)))]
 
-        clusterData['clusSizes'] = sortedClusSizeArray
-        clusterData['clusIndices'] = sortedClusIndicesArray
-        clusterData['clusPeakZstats'] = sortedMaxPeakZstats
-        clusterData['clusPeakLocations'] = sortedMaxPeakLocations
-        
-        return(clusterData)
+        return({'clusSizes':sortedClusSizeArray,
+                'clusIndices':sortedClusIndicesArray,
+                'clusPeakZstats':sortedMaxPeakZstats,
+                'clusPeakLocations':sortedMaxPeakLocations,
+                'peakZstats':sortedPeaksZstatsArray,
+                'peakClusIndices':sortedClusIndicesForPeaks,
+                'peakLocations':sortedPeakLocations})
 
 def generateExcPage(outdir, excName, conData):
 
@@ -556,31 +502,16 @@ def generateExcPage(outdir, excName, conData):
         #Cluster statistics section.
         excPage += h1("Cluster List")
 
-        #Work out if we have cluster p value data.
-        pDataAvailable = 'clusterPValues' in conData
-        
-
         #Make the cluster statistics table.
         excPage += raw("<table cellspacing='3' border='3'><tbody>")
+        excPage += raw("<tr><th>Cluster Index</th><th>Voxels</th><th>Z-MAX</th><th>Z-MAX X (mm)</th><th>Z-MAX Y (mm)</th><th>Z-MAX Z (mm)</th></tr>")
 
-        #If we have pvalues for clusters include them.
-        if pDataAvailable:
-                excPage += raw("<tr><th>Cluster Index</th><th>Voxels</th><th>P</th><th>-log10(P)</th><th>Z-MAX</th><th>Z-MAX X (mm)</th><th>Z-MAX Y (mm)</th><th>Z-MAX Z (mm)</th></tr>")
-        else:
-                excPage += raw("<tr><th>Cluster Index</th><th>Voxels</th><th>Z-MAX</th><th>Z-MAX X (mm)</th><th>Z-MAX Y (mm)</th><th>Z-MAX Z (mm)</th></tr>")
-        
         #Add the cluster statistics data into the table.
         for cluster in range(0, len(conData['clusSizes'])):
                 #New row
                 excPage += raw("<tr>")
                 excPage += raw("<td>" + str(conData['clusIndices'][cluster]) + "</td>")
                 excPage += raw("<td>" + str(conData['clusSizes'][cluster]) + "</td>")
-                
-                #If cluster p data is available
-                if pDataAvailable:
-                        excPage += raw("<td>" + ("%.2g" % conData['clusterPValues'][cluster]) + "</td>")
-                        excPage += raw("<td>" + ("%.4f" % -math.log(conData['clusterPValues'][cluster], 10)) + "</td>")
-                
                 excPage += raw("<td>" + str(float('%.2f' % float(conData['clusPeakZstats'][cluster]))) + "</td>")
 
                 #Peak location
@@ -764,16 +695,32 @@ def generatePostStatsHTML(graph,statsFilePath = "stats.html",postStatsFilePath =
 	if askFsl(graph) == True:
 	
 		while i < len(contrastName):
-		
-			postStats += p("%s" % contrastName[i])
+
+                        #Colorbar and colorbar limits.
+			postStats += raw("%s" % contrastName[i] + "&nbsp &nbsp" +
+                                         "%0.3g" % float(getVal(os.path.join(os.path.split(postStatsFilePath)[0], excursionSetNifti[i]), 'min')) +
+                                         " &nbsp " +
+                                         "<img src = '" + encodeColorBar() + "'>" +
+                                         " &nbsp " +
+                                         "%0.3g" % float(getVal(os.path.join(os.path.split(postStatsFilePath)[0], excursionSetNifti[i]), 'max')) +
+                                         "<br><br>")
+			#Slice Image
 			postStats += img(src = excursionSetImage[i])
+			postStats += br()
+			postStats += br()
 			i = i + 1
 
 	if askSpm(graph) == True and len(excursionSetNifti) == len(contrastName):
 	
 		while i < len(excursionSetNifti):
-		
-			postStats += p("%s" % contrastName[i])
+					
+			postStats += raw("%s" % contrastName[i] + "&nbsp &nbsp" +
+                                         "%0.3g" % float(getVal(os.path.join(os.path.split(postStatsFilePath)[0], excursionSetNifti[i]), 'min')) +
+                                         " &nbsp " +
+                                         "<img src = '" + encodeColorBar() + "'>" +
+                                         " &nbsp " +
+                                         "%0.3g" % float(getVal(os.path.join(os.path.split(postStatsFilePath)[0], excursionSetNifti[i]), 'max')) +
+                                         "<br><br>")
 			sliceImage = generateSliceImage_SPM(os.path.join(os.path.split(postStatsFilePath)[0], excursionSetNifti[i]))
 			postStats += img(src = 'data:image/jpg;base64,' + encodeImage(sliceImage).decode())
 			i = i + 1
@@ -789,7 +736,11 @@ def generatePostStatsHTML(graph,statsFilePath = "stats.html",postStatsFilePath =
 				conString += '/'
 			i = i + 1
 
-		postStats += p('%s' % conString)
+		postStats += raw("%s" % conString + "&nbsp &nbsp" +
+                                 "%0.3g" % float(getVal(os.path.join(os.path.split(postStatsFilePath)[0], excursionSetNifti[0]), 'min')) +
+                                 "<img src = '" + encodeColorBar() + "'>" +
+                                 "%0.3g" % float(getVal(os.path.join(os.path.split(postStatsFilePath)[0], excursionSetNifti[0]), 'max')) +
+                                 "<br><br>")
 		sliceImage = generateSliceImage_SPM(os.path.join(os.path.split(postStatsFilePath)[0], excursionSetNifti[0]))
 		postStats += img(src = 'data:image/jpg;base64,' + encodeImage(sliceImage).decode())
 
@@ -830,11 +781,13 @@ def pageGenerate(g, outdir):
 	for row in excNiftiNames:
 	
 		excName = "%s" % row
-		excData = formatClusterStats(outdir, g, excName)
+		excData = formatClusterStats(g, excName)
 		generateExcPage(os.path.join(outdir, 'Cluster_Data'), excName.replace(".nii.gz", ""), excData)
 
 def main(nidmFile, htmlFolder, overwrite=False): #Main program
 
+	print(nidmFile)
+	
 	g = rdflib.Graph()
 	filepath = nidmFile
 	
@@ -900,8 +853,3 @@ def main(nidmFile, htmlFolder, overwrite=False): #Main program
 		pageGenerate(g, dirLocation)
 	
 	return(destinationFolder) #Return the html/zip-extraction folder
-
-	
-
-		
-	

@@ -55,7 +55,11 @@ def checkFWEExtentThreshold(graph): #checks for FWE corrected extent threshold
                prefix nidm_Inference: <http://purl.org/nidash/nidm#NIDM_0000049>
                prefix obo_FWERadjustedpvalue: <http://purl.obolibrary.org/obo/OBI_0001265>
 
-               SELECT ?x {?x a nidm_ExtentThreshold: . ?x a obo_FWERadjustedpvalue: .}"""
+               SELECT ?x
+
+               WHERE {{?x a nidm_ExtentThreshold: . ?x a obo_FWERadjustedpvalue: . ?x prov:value ?thresh . }
+
+               FILTER(STR(?thresh) = '1'^^xsd:string)}"""
 			   
 	queryResult = graph.query(query)
 		
@@ -68,7 +72,9 @@ def checkFDRExtentThreshold(graph): #checks for FWE corrected extent threshold
                prefix nidm_Inference: <http://purl.org/nidash/nidm#NIDM_0000049>
                prefix obo_qvalue: <http://purl.obolibrary.org/obo/OBI_0001442>
 
-               SELECT ?x {?x a nidm_ExtentThreshold: . ?x a obo_qvalue: .}"""
+               SELECT ?x
+
+               WHERE {?x a nidm_ExtentThreshold: . ?x a obo_qvalue: .}"""
 			   
 	queryResult = graph.query(query)
 		
@@ -178,55 +184,101 @@ def formatClusterStats(g, excName):
                                ?clus nidm_qValueFDR: ?pVal .}
 
                        FILTER(STR(?conMap) = '""" + excName + """'^^xsd:string)}"""
+
+        else:
                 
-        #Run the cluster query
-        clusQueryResult = g.query(clus_query)
+                clus_query = """prefix nidm_SupraThresholdCluster: <http://purl.org/nidash/nidm#NIDM_0000070>
+                       prefix nidm_clusterSizeInVoxels: <http://purl.org/nidash/nidm#NIDM_0000084>
+                       prefix nidm_clusterLabelID: <http://purl.org/nidash/nidm#NIDM_0000082>
+                       prefix nidm_equivalentZStatistic: <http://purl.org/nidash/nidm#NIDM_0000092>
+                       prefix prov: <http://www.w3.org/ns/prov#>
+               
+                       SELECT ?clus_index ?clus_size
 
-        #Retrieve query results.
-        clusterIndices = [int("%s %0.0s %0.0s" % row) for row in clusQueryResult]
-        clusterSizes = [int("%0.0s %s %0.0s" % row) for row in clusQueryResult]
-        clusterPVals = ["%0.0s %0.0s %s" % row for row in clusQueryResult]
+                       WHERE {{?exc a nidm_ExcursionSetMap: . ?clus prov:wasDerivedFrom ?exc . ?clus a nidm_SupraThresholdCluster: .
+                               ?exc prov:atLocation ?conMap . ?clus a nidm_SupraThresholdCluster: .
+                               ?clus nidm_clusterLabelID: ?clus_index . ?clus nidm_clusterSizeInVoxels: ?clus_size . }
 
-        #Remove any spaces from P vals
-        clusterPVals = [float(pval.replace(" ", "")) for pval in clusterPVals]
-        print(clusterPVals)
+                       FILTER(STR(?conMap) = '""" + excName + """'^^xsd:string)}"""
 
-        print(len(clusterIndices))
+        #A corrected cluster threshold has been applied so we should display cluster P values.
+        if len(checkFWEExtentThreshold(g)) > 0 or len(checkFDRExtentThreshold(g)) > 0:
+                
+                #Run the cluster query
+                clusQueryResult = g.query(clus_query)
 
-        #Create an array for the highest peaks.
-        highestPeakZArray = [0]*len(clusterIndices)
-        highestPeakLocations = [0]*len(clusterIndices)
-        for i in list(range(0, len(peakZstats))):
-                if highestPeakZArray[clusterIndicesForPeaks[i]-1] < peakZstats[i]:
-                        highestPeakZArray[clusterIndicesForPeaks[i]-1] = peakZstats[i]
-                        highestPeakLocations[clusterIndicesForPeaks[i]-1] = locations[i]
+                #Retrieve query results.
+                clusterIndices = [int("%s %0.0s %0.0s" % row) for row in clusQueryResult]
+                clusterSizes = [int("%0.0s %s %0.0s" % row) for row in clusQueryResult]
+                clusterPVals = ["%0.0s %0.0s %s" % row for row in clusQueryResult]
 
-        #Obtain permutation used to sort the results in order of descending cluster index and then for each cluster by peak statistic size.
-        clusterSortPermutation = sorted(range(len(clusterIndices)), reverse = True, key=lambda k: clusterSizes[k])
+                #Remove any spaces from P vals
+                clusterPVals = [float(pval.replace(" ", "")) for pval in clusterPVals]
 
-        #Sorted cluster arrays
-        sortedClusSizeArray = [clusterSizes[i] for i in clusterSortPermutation]
-        sortedClusIndicesArray = [clusterIndices[i] for i in clusterSortPermutation]
-        sortedClusPVals = [clusterPVals[i] for i in clusterSortPermutation]
+                #Create an array for the highest peaks.
+                highestPeakZArray = [0]*len(clusterIndices)
+                highestPeakLocations = [0]*len(clusterIndices)
+                for i in list(range(0, len(peakZstats))):
+                        if highestPeakZArray[clusterIndicesForPeaks[i]-1] < peakZstats[i]:
+                                highestPeakZArray[clusterIndicesForPeaks[i]-1] = peakZstats[i]
+                                highestPeakLocations[clusterIndicesForPeaks[i]-1] = locations[i]
 
-        #Sort the highest peaks
-        sortedMaxPeakZstats = [highestPeakZArray[sortedClusIndicesArray[i]-1] for i in list(range(0, len(clusterIndices)))]
-        sortedMaxPeakLocations = [highestPeakLocations[sortedClusIndicesArray[i]-1] for i in list(range(0, len(clusterIndices)))]
+                #Obtain permutation used to sort the results in order of descending cluster index and then for each cluster by peak statistic size.
+                clusterSortPermutation = sorted(range(len(clusterIndices)), reverse = True, key=lambda k: clusterSizes[k])
 
-        #Deal with inf issues.
-        logClusPVals = [0]*len(sortedClusPVals)
-        for i in list(range(0, len(sortedClusPVals))):
-                if sortedClusPVals[i] == 0:
-                        logClusPVals[i] = math.inf
-                else:
-                        logClusPVals[i] = -math.log(sortedClusPVals[i], 10)
+                #Sorted cluster arrays
+                sortedClusSizeArray = [clusterSizes[i] for i in clusterSortPermutation]
+                sortedClusIndicesArray = [clusterIndices[i] for i in clusterSortPermutation]
+                sortedClusPVals = [clusterPVals[i] for i in clusterSortPermutation]
+
+                #Sort the highest peaks
+                sortedMaxPeakZstats = [highestPeakZArray[sortedClusIndicesArray[i]-1] for i in list(range(0, len(clusterIndices)))]
+                sortedMaxPeakLocations = [highestPeakLocations[sortedClusIndicesArray[i]-1] for i in list(range(0, len(clusterIndices)))]
+
+                #Deal with inf issues.
+                logClusPVals = [0]*len(sortedClusPVals)
+                for i in list(range(0, len(sortedClusPVals))):
+                        if sortedClusPVals[i] == 0:
+                                logClusPVals[i] = math.inf
+                        else:
+                                logClusPVals[i] = -math.log(sortedClusPVals[i], 10)
+                                
+                clusterData['clusterPValues'] = sortedClusPVals
+                clusterData['logClusterPValues'] = logClusPVals
+                
+        else:
+                #Run the cluster query
+                clusQueryResult = g.query(clus_query)
+
+                #Retrieve query results.
+                clusterIndices = [int("%s %0.0s" % row) for row in clusQueryResult]
+                clusterSizes = [int("%0.0s %s" % row) for row in clusQueryResult]
+
+                #Create an array for the highest peaks.
+                highestPeakZArray = [0]*len(clusterIndices)
+                highestPeakLocations = [0]*len(clusterIndices)
+                for i in list(range(0, len(peakZstats))):
+                        if highestPeakZArray[clusterIndicesForPeaks[i]-1] < peakZstats[i]:
+                                highestPeakZArray[clusterIndicesForPeaks[i]-1] = peakZstats[i]
+                                highestPeakLocations[clusterIndicesForPeaks[i]-1] = locations[i]
+
+                #Obtain permutation used to sort the results in order of descending cluster index and then for each cluster by peak statistic size.
+                clusterSortPermutation = sorted(range(len(clusterIndices)), reverse = True, key=lambda k: clusterSizes[k])
+
+                #Sorted cluster arrays
+                sortedClusSizeArray = [clusterSizes[i] for i in clusterSortPermutation]
+                sortedClusIndicesArray = [clusterIndices[i] for i in clusterSortPermutation]
+
+                #Sort the highest peaks
+                sortedMaxPeakZstats = [highestPeakZArray[sortedClusIndicesArray[i]-1] for i in list(range(0, len(clusterIndices)))]
+                sortedMaxPeakLocations = [highestPeakLocations[sortedClusIndicesArray[i]-1] for i in list(range(0, len(clusterIndices)))]
 
         clusterData['clusSizes'] = sortedClusSizeArray
         clusterData['clusIndices'] = sortedClusIndicesArray
         clusterData['clusPeakZstats'] = sortedMaxPeakZstats
         clusterData['clusPeakLocations'] = sortedMaxPeakLocations
-        clusterData['clusterPValues'] = sortedClusPVals
-        clusterData['logClusterPValues'] = logClusPVals
+
+        print(clusterData)
         
         return(clusterData)
 
@@ -268,7 +320,7 @@ def generateExcPage(outdir, excName, conData):
                 
                 #If cluster p data is available
                 if pDataAvailable:
-                        excPage += raw("<td>" + ("%.2g" % conData['clusterPValues'][cluster]) + "</td>")
+                        excPage += raw("<td>" + ("%.4g" % conData['clusterPValues'][cluster]) + "</td>")
                         excPage += raw("<td>" + ("%.4f" % conData['logClusterPValues'][cluster]) + "</td>")
                 
                 excPage += raw("<td>" + str(float('%.2f' % float(conData['clusPeakZstats'][cluster]))) + "</td>")
@@ -336,6 +388,8 @@ def queryExcursionSetNifti(graph): #Selects excursoion set NIFTI URI
 #This function generates all pages for display.
 def pageGenerate(g, outdir):
 
+        print(outdir)
+
 	#Make cluster pages
 	os.mkdir(os.path.join(outdir, 'Cluster_Data'))
 	excNiftiNames = queryExcursionSetNifti(g)
@@ -349,7 +403,7 @@ def pageGenerate(g, outdir):
 
 ##################################################################################################################################################
 shutil.rmtree('/home/tom/Documents/Cluster_Data')
-outdir = '/home/tom/Documents/Repos/nidmresults-fslhtml/Tests/data/ex_spm_thr_clustfdrp05_test/'
+outdir = '/home/tom/Documents/Repos/nidmresults-fslhtml/Tests/data/ex_spm_thr_clustfwep05_test/'
 #os.mkdir(os.path.join(outdir, 'Cluster_Data'))
 #t = time.time()
 g = rdflib.Graph()
