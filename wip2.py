@@ -48,15 +48,27 @@ def printQuery(query): #Generic function for printing the results of a query - u
 	print('length: ' + str(i))
 	#ENDFOR     
 
-def checkExtentThreshold(graph): #checks for corrected extent threshold
+def checkFWEExtentThreshold(graph): #checks for FWE corrected extent threshold
+
+	query = """prefix prov: <http://www.w3.org/ns/prov#>
+               prefix nidm_ExtentThreshold: <http://purl.org/nidash/nidm#NIDM_0000026>
+               prefix nidm_Inference: <http://purl.org/nidash/nidm#NIDM_0000049>
+               prefix obo_FWERadjustedpvalue: <http://purl.obolibrary.org/obo/OBI_0001265>
+
+               SELECT ?x {?x a nidm_ExtentThreshold: . ?x a obo_FWERadjustedpvalue: .}"""
+			   
+	queryResult = graph.query(query)
+		
+	return(queryResult)
+
+def checkFDRExtentThreshold(graph): #checks for FWE corrected extent threshold
 
 	query = """prefix prov: <http://www.w3.org/ns/prov#>
                prefix nidm_ExtentThreshold: <http://purl.org/nidash/nidm#NIDM_0000026>
                prefix nidm_Inference: <http://purl.org/nidash/nidm#NIDM_0000049>
                prefix obo_qvalue: <http://purl.obolibrary.org/obo/OBI_0001442>
-               prefix obo_FWERadjustedpvalue: <http://purl.obolibrary.org/obo/OBI_0001265>
 
-               SELECT ?x {?y a nidm_Inference: . ?y prov:used ?x . {?x a nidm_ExtentThreshold: . ?x a obo_qvalue: .} UNION {?x a nidm_ExtentThreshold: . ?x a obo_FWERadjustedpvalue: .}}"""
+               SELECT ?x {?x a nidm_ExtentThreshold: . ?x a obo_qvalue: .}"""
 			   
 	queryResult = graph.query(query)
 		
@@ -87,12 +99,8 @@ def formatClusterStats(g, excName):
         #First we gather data for peaks table.
         #---------------------------------------------------------------------------------------------------------
 
-        clustThresh = checkExtentThreshold(g)
-
-        if clustThresh:
-
-                #We must include cluster p values in the query.
-                peak_query = """prefix nidm_SupraThresholdCluster: <http://purl.org/nidash/nidm#NIDM_0000070>
+        #We must include cluster p values in the query.
+        peak_query = """prefix nidm_SupraThresholdCluster: <http://purl.org/nidash/nidm#NIDM_0000070>
                        prefix nidm_clusterSizeInVoxels: <http://purl.org/nidash/nidm#NIDM_0000084>
                        prefix nidm_clusterLabelID: <http://purl.org/nidash/nidm#NIDM_0000082>
                        prefix nidm_equivalentZStatistic: <http://purl.org/nidash/nidm#NIDM_0000092>
@@ -103,107 +111,87 @@ def formatClusterStats(g, excName):
                        prefix nidm_qValueFDR: <http://purl.org/nidash/nidm#NIDM_0000119>
                        
                        
-                       SELECT ?peakStat ?clus_index ?loc ?pVal
-
-                       WHERE {{?exc a nidm_ExcursionSetMap: . ?clus prov:wasDerivedFrom ?exc . ?clus a nidm_SupraThresholdCluster: .
-                               ?exc prov:atLocation ?conMap . ?clus nidm_clusterLabelID: ?clus_index .
-                               ?peak prov:wasDerivedFrom ?clus . ?peak nidm_equivalentZStatistic: ?peakStat .
-                               ?peak prov:atLocation ?locObj . ?locObj nidm_coordinateVector: ?loc .
-                               {?peak nidm_qValueFDR: ?pVal .} UNION {?peak nidm_pValueUncorrected: ?pVal .}
-                               UNION {?peak nidm_pValueFWER: ?pVal .} .}
-
-                       FILTER(STR(?conMap) = '""" + excName + """'^^xsd:string)}"""
-                
-                #Run the peak query
-                peakQueryResult = g.query(peak_query)
-
-                #Retrieve query results.
-                clusterIndicesForPeaks = [int("%0.0s %s %0.0s %0.0s" % row) for row in peakQueryResult]
-                peakZstats = [float("%s %0.0s %0.0s %0.0s" % row) for row in peakQueryResult]
-                locations = ["%0.0s %0.0s %s %0.0s" % row for row in peakQueryResult]
-                clusPVals = ["%0.0s %0.0s %0.0s %s" % row for row in peakQueryResult]
-
-                #Remove any spaces from P vals
-                clusPVals = [float(pval.replace(" ", "")) for pval in clusPVals]
-                print(clusPVals)
-
-                #Obtain permutation used to sort the results in order of descending cluster index and then descending peak statistic size.
-                peaksSortPermutation = sorted(range(len(clusterIndicesForPeaks)), reverse = True, key=lambda k: (-clusterIndicesForPeaks[k], peakZstats[k]))
-
-                #Sort all peak data using this permutation.
-                sortedPeaksZstatsArray = [peakZstats[i] for i in peaksSortPermutation]
-                sortedClusIndicesForPeaks = [clusterIndicesForPeaks[i] for i in peaksSortPermutation]
-                sortedPeakLocations = [locations[i] for i in peaksSortPermutation]
-                sortedClusPVals = [clusPVals[i] for i in peaksSortPermutation]
-
-                clusterData['peakZstats'] = sortedPeaksZstatsArray
-                clusterData['peakClusIndices'] = sortedClusIndicesForPeaks
-                clusterData['peakLocations'] = sortedPeakLocations
-                clusterData['clusterPValues'] = sortedClusPVals
-                
-        else:
-                
-                #We must not include cluster p values in the query.
-                peak_query = """prefix nidm_SupraThresholdCluster: <http://purl.org/nidash/nidm#NIDM_0000070>
-                       prefix nidm_clusterSizeInVoxels: <http://purl.org/nidash/nidm#NIDM_0000084>
-                       prefix nidm_clusterLabelID: <http://purl.org/nidash/nidm#NIDM_0000082>
-                       prefix nidm_equivalentZStatistic: <http://purl.org/nidash/nidm#NIDM_0000092>
-                       prefix prov: <http://www.w3.org/ns/prov#>
-                       prefix nidm_coordinateVector: <http://purl.org/nidash/nidm#NIDM_0000086>
-                       
                        SELECT ?peakStat ?clus_index ?loc
 
                        WHERE {{?exc a nidm_ExcursionSetMap: . ?clus prov:wasDerivedFrom ?exc . ?clus a nidm_SupraThresholdCluster: .
                                ?exc prov:atLocation ?conMap . ?clus nidm_clusterLabelID: ?clus_index .
                                ?peak prov:wasDerivedFrom ?clus . ?peak nidm_equivalentZStatistic: ?peakStat .
-                               ?peak prov:atLocation ?locObj . ?locObj nidm_coordinateVector: ?loc}
+                               ?peak prov:atLocation ?locObj . ?locObj nidm_coordinateVector: ?loc .}
 
                        FILTER(STR(?conMap) = '""" + excName + """'^^xsd:string)}"""
+                
+        #Run the peak query
+        peakQueryResult = g.query(peak_query)
 
-                #Run the peak query
-                peakQueryResult = g.query(peak_query)
+        #Retrieve query results.
+        clusterIndicesForPeaks = [int("%0.0s %s %0.0s" % row) for row in peakQueryResult]
+        peakZstats = [float("%s %0.0s %0.0s" % row) for row in peakQueryResult]
+        locations = ["%0.0s %0.0s %s" % row for row in peakQueryResult]
 
-                #Retrieve query results.
-                clusterIndicesForPeaks = [int("%0.0s %s %0.0s" % row) for row in peakQueryResult]
-                peakZstats = [float("%s %0.0s %0.0s" % row) for row in peakQueryResult]
-                locations = ["%0.0s %0.0s %s" % row for row in peakQueryResult]
+        #Obtain permutation used to sort the results in order of descending cluster index and then descending peak statistic size.
+        peaksSortPermutation = sorted(range(len(clusterIndicesForPeaks)), reverse = True, key=lambda k: (-clusterIndicesForPeaks[k], peakZstats[k]))
 
-                #Obtain permutation used to sort the results in order of descending cluster index and then descending peak statistic size.
-                peaksSortPermutation = sorted(range(len(clusterIndicesForPeaks)), reverse = True, key=lambda k: (-clusterIndicesForPeaks[k], peakZstats[k]))
+        #Sort all peak data using this permutation.
+        sortedPeaksZstatsArray = [peakZstats[i] for i in peaksSortPermutation]
+        sortedClusIndicesForPeaks = [clusterIndicesForPeaks[i] for i in peaksSortPermutation]
+        sortedPeakLocations = [locations[i] for i in peaksSortPermutation]
 
-                #Sort all peak data using this permutation.
-                sortedPeaksZstatsArray = [peakZstats[i] for i in peaksSortPermutation]
-                sortedClusIndicesForPeaks = [clusterIndicesForPeaks[i] for i in peaksSortPermutation]
-                sortedPeakLocations = [locations[i] for i in peaksSortPermutation]
-
-                clusterData['peakZstats'] = sortedPeaksZstatsArray
-                clusterData['peakClusIndices'] = sortedClusIndicesForPeaks
-                clusterData['peakLocations'] = sortedPeakLocations
+        clusterData['peakZstats'] = sortedPeaksZstatsArray
+        clusterData['peakClusIndices'] = sortedClusIndicesForPeaks
+        clusterData['peakLocations'] = sortedPeakLocations
 
         #---------------------------------------------------------------------------------------------------------
         #Second we gather data for cluster table.
         #---------------------------------------------------------------------------------------------------------
 
-        clus_query = """prefix nidm_SupraThresholdCluster: <http://purl.org/nidash/nidm#NIDM_0000070>
-               prefix nidm_clusterSizeInVoxels: <http://purl.org/nidash/nidm#NIDM_0000084>
-               prefix nidm_clusterLabelID: <http://purl.org/nidash/nidm#NIDM_0000082>
-               prefix nidm_equivalentZStatistic: <http://purl.org/nidash/nidm#NIDM_0000092>
-               prefix prov: <http://www.w3.org/ns/prov#>
+
+        if len(checkFWEExtentThreshold(g)) > 0:
+                
+                clus_query = """prefix nidm_SupraThresholdCluster: <http://purl.org/nidash/nidm#NIDM_0000070>
+                       prefix nidm_clusterSizeInVoxels: <http://purl.org/nidash/nidm#NIDM_0000084>
+                       prefix nidm_clusterLabelID: <http://purl.org/nidash/nidm#NIDM_0000082>
+                       prefix nidm_equivalentZStatistic: <http://purl.org/nidash/nidm#NIDM_0000092>
+                       prefix prov: <http://www.w3.org/ns/prov#>
                
-               SELECT ?clus_index ?clus_size
+                       SELECT ?clus_index ?clus_size ?pVal
 
-               WHERE {{?exc a nidm_ExcursionSetMap: . ?clus prov:wasDerivedFrom ?exc . ?clus a nidm_SupraThresholdCluster: .
-                       ?exc prov:atLocation ?conMap . ?clus a nidm_SupraThresholdCluster: .
-                       ?clus nidm_clusterLabelID: ?clus_index . ?clus nidm_clusterSizeInVoxels: ?clus_size}
+                       WHERE {{?exc a nidm_ExcursionSetMap: . ?clus prov:wasDerivedFrom ?exc . ?clus a nidm_SupraThresholdCluster: .
+                               ?exc prov:atLocation ?conMap . ?clus a nidm_SupraThresholdCluster: .
+                               ?clus nidm_clusterLabelID: ?clus_index . ?clus nidm_clusterSizeInVoxels: ?clus_size .
+                               ?clus nidm_pValueFWER: ?pVal .}
 
-               FILTER(STR(?conMap) = '""" + excName + """'^^xsd:string)}"""
-        
+                       FILTER(STR(?conMap) = '""" + excName + """'^^xsd:string)}"""
+                
+        elif len(checkFDRExtentThreshold(g)) > 0:
+                
+                clus_query = """prefix nidm_SupraThresholdCluster: <http://purl.org/nidash/nidm#NIDM_0000070>
+                       prefix nidm_clusterSizeInVoxels: <http://purl.org/nidash/nidm#NIDM_0000084>
+                       prefix nidm_clusterLabelID: <http://purl.org/nidash/nidm#NIDM_0000082>
+                       prefix nidm_equivalentZStatistic: <http://purl.org/nidash/nidm#NIDM_0000092>
+                       prefix prov: <http://www.w3.org/ns/prov#>
+               
+                       SELECT ?clus_index ?clus_size ?pVal
+
+                       WHERE {{?exc a nidm_ExcursionSetMap: . ?clus prov:wasDerivedFrom ?exc . ?clus a nidm_SupraThresholdCluster: .
+                               ?exc prov:atLocation ?conMap . ?clus a nidm_SupraThresholdCluster: .
+                               ?clus nidm_clusterLabelID: ?clus_index . ?clus nidm_clusterSizeInVoxels: ?clus_size .
+                               ?clus nidm_qValueFDR: ?pVal .}
+
+                       FILTER(STR(?conMap) = '""" + excName + """'^^xsd:string)}"""
+                
         #Run the cluster query
         clusQueryResult = g.query(clus_query)
 
         #Retrieve query results.
-        clusterIndices = [int("%s %0.0s" % row) for row in clusQueryResult]
-        clusterSizes = [int("%0.0s %s" % row) for row in clusQueryResult]
+        clusterIndices = [int("%s %0.0s %0.0s" % row) for row in clusQueryResult]
+        clusterSizes = [int("%0.0s %s %0.0s" % row) for row in clusQueryResult]
+        clusterPVals = ["%0.0s %0.0s %s" % row for row in clusQueryResult]
+
+        #Remove any spaces from P vals
+        clusterPVals = [float(pval.replace(" ", "")) for pval in clusterPVals]
+        print(clusterPVals)
+
+        print(len(clusterIndices))
 
         #Create an array for the highest peaks.
         highestPeakZArray = [0]*len(clusterIndices)
@@ -214,20 +202,31 @@ def formatClusterStats(g, excName):
                         highestPeakLocations[clusterIndicesForPeaks[i]-1] = locations[i]
 
         #Obtain permutation used to sort the results in order of descending cluster index and then for each cluster by peak statistic size.
-        clusterSortPermutation = sorted(range(len(clusterIndices)), reverse = True, key=lambda k: -clusterSizes[k])
+        clusterSortPermutation = sorted(range(len(clusterIndices)), reverse = True, key=lambda k: clusterSizes[k])
 
         #Sorted cluster arrays
         sortedClusSizeArray = [clusterSizes[i] for i in clusterSortPermutation]
         sortedClusIndicesArray = [clusterIndices[i] for i in clusterSortPermutation]
+        sortedClusPVals = [clusterPVals[i] for i in clusterSortPermutation]
 
         #Sort the highest peaks
         sortedMaxPeakZstats = [highestPeakZArray[sortedClusIndicesArray[i]-1] for i in list(range(0, len(clusterIndices)))]
         sortedMaxPeakLocations = [highestPeakLocations[sortedClusIndicesArray[i]-1] for i in list(range(0, len(clusterIndices)))]
 
+        #Deal with inf issues.
+        logClusPVals = [0]*len(sortedClusPVals)
+        for i in list(range(0, len(sortedClusPVals))):
+                if sortedClusPVals[i] == 0:
+                        logClusPVals[i] = math.inf
+                else:
+                        logClusPVals[i] = -math.log(sortedClusPVals[i], 10)
+
         clusterData['clusSizes'] = sortedClusSizeArray
         clusterData['clusIndices'] = sortedClusIndicesArray
         clusterData['clusPeakZstats'] = sortedMaxPeakZstats
         clusterData['clusPeakLocations'] = sortedMaxPeakLocations
+        clusterData['clusterPValues'] = sortedClusPVals
+        clusterData['logClusterPValues'] = logClusPVals
         
         return(clusterData)
 
@@ -270,7 +269,7 @@ def generateExcPage(outdir, excName, conData):
                 #If cluster p data is available
                 if pDataAvailable:
                         excPage += raw("<td>" + ("%.2g" % conData['clusterPValues'][cluster]) + "</td>")
-                        excPage += raw("<td>" + ("%.4f" % -math.log(conData['clusterPValues'][cluster], 10)) + "</td>")
+                        excPage += raw("<td>" + ("%.4f" % conData['logClusterPValues'][cluster]) + "</td>")
                 
                 excPage += raw("<td>" + str(float('%.2f' % float(conData['clusPeakZstats'][cluster]))) + "</td>")
 
@@ -350,7 +349,7 @@ def pageGenerate(g, outdir):
 
 ##################################################################################################################################################
 shutil.rmtree('/home/tom/Documents/Cluster_Data')
-outdir = '/home/tom/Documents/Repos/nidmresults-fslhtml/Tests/data/ex_spm_thr_clustfwep05_test/'
+outdir = '/home/tom/Documents/Repos/nidmresults-fslhtml/Tests/data/ex_spm_thr_clustfdrp05_test/'
 #os.mkdir(os.path.join(outdir, 'Cluster_Data'))
 #t = time.time()
 g = rdflib.Graph()
