@@ -427,7 +427,7 @@ def formatClusterStats(g, excName):
         peakZstats = [float(peak.replace(" ", "")) for peak in peakZstats]
 
         #Obtain permutation used to sort the results in order of descending cluster index and then descending peak statistic size.
-        peaksSortPermutation = sorted(range(len(clusterIndicesForPeaks)), reverse = True, key=lambda k: (-clusterIndicesForPeaks[k], peakZstats[k]))
+        peaksSortPermutation = sorted(range(len(clusterIndicesForPeaks)), reverse = True, key=lambda k: (clusterIndicesForPeaks[k], peakZstats[k]))
 
         #Sort all peak data using this permutation.
         sortedPeaksZstatsArray = [peakZstats[i] for i in peaksSortPermutation]
@@ -468,7 +468,7 @@ def formatClusterStats(g, excName):
                         highestPeakLocations[clusterIndicesForPeaks[i]-1] = locations[i]
 
         #Obtain permutation used to sort the results in order of descending cluster index and then for each cluster by peak statistic size.
-        clusterSortPermutation = sorted(range(len(clusterIndices)), reverse = True, key=lambda k: -clusterIndices[k])
+        clusterSortPermutation = sorted(range(len(clusterIndices)), reverse = True, key=lambda k: clusterIndices[k])
 
         #Sorted cluster arrays
         sortedClusSizeArray = [clusterSizes[i] for i in clusterSortPermutation]
