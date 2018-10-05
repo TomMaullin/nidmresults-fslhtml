@@ -46,13 +46,13 @@ if __name__ == "__main__":
                  "ex_spm_temporal_derivative", "ex_spm_thr_clustfwep05",
                  "ex_spm_thr_clustunck10", "ex_spm_thr_voxelfdrp05",
                  "ex_spm_thr_voxelfwep05", "ex_spm_thr_voxelunct4",
-                 "fsl_con_f_130", "fsl_contrast_mask_130",
-                 "fsl_default_130", "fsl_full_examples001_130",
-                 "fsl_gamma_basis_130", "fsl_gaussian_130",
-                 "fsl_group_btw_130", "fsl_group_ols_130",
-                 "fsl_group_wls_130", "fsl_hrf_fir_130",
-                 "fsl_hrf_gammadiff_130", "fsl_thr_clustfwep05_130",
-                 "fsl_thr_voxelfwep05_130"]
+                 "fsl_con_f", "fsl_contrast_mask",
+                 "fsl_default", "fsl_full_examples001",
+                 "fsl_gamma_basis", "fsl_gaussian",
+                 "fsl_group_btw", "fsl_group_ols",
+                 "fsl_group_wls", "fsl_hrf_fir",
+                 "fsl_hrf_gammadiff", "fsl_thr_clustfwep05",
+                 "fsl_thr_voxelfwep05"]
 
     local = True
     for dataName in dataNames:  # Checks if data is on local machine
@@ -68,7 +68,7 @@ if __name__ == "__main__":
         print("Downloading data")
         # Request from neurovault api
         req = urllib.request.Request(
-            "http://neurovault.org/api/collections/2210/nidm_results")
+            "http://neurovault.org/api/collections/4249/nidm_results")
         resp = urllib.request.urlopen(req)
         readResp = resp.read()
         data = json.loads(readResp.decode('utf-8'))

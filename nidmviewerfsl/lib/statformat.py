@@ -125,15 +125,20 @@ def format_cluster_stats(g, excName):
     clusQueryResult = run_query(g, 'selectClusterData', 'Select',
                                 {'EXC_NAME': excName})
 
+    # Check if we have cluster P values.
+    cluspValsAvail = run_query(g, 'askCExtentThreshold', 'Ask')
+
     clusterIndices = [
         int(clusQueryResult[i]) for i in list(
             range(0, len(clusQueryResult), 3))]
     clusterSizes = [
         int(clusQueryResult[i]) for i in list(
             range(1, len(clusQueryResult), 3))]
-    clusterPVals = [
-        float(clusQueryResult[i]) for i in list(
-            range(2, len(clusQueryResult), 3))]
+
+    if cluspValsAvail:
+        clusterPVals = [
+            float(clusQueryResult[i]) for i in list(
+                range(2, len(clusQueryResult), 3))]
 
     # Create an array for the highest peaks.
     highestPeakZArray = [0]*len(clusterIndices)
@@ -155,8 +160,10 @@ def format_cluster_stats(g, excName):
         clusterSizes[i] for i in clusterSortPermutation]
     sortedClusIndicesArray = [
         clusterIndices[i] for i in clusterSortPermutation]
-    sortedClusPVals = [
-        clusterPVals[i] for i in clusterSortPermutation]
+
+    if cluspValsAvail:
+        sortedClusPVals = [
+            clusterPVals[i] for i in clusterSortPermutation]
 
     # Sort the highest peaks
     sortedMaxPeakZstats = [
@@ -176,20 +183,21 @@ def format_cluster_stats(g, excName):
         else:
             logPeakPVals[i] = -math.log(sortedPeakPVals[i], 10)
 
-    # Deal with inf issues for clusters.
-    logClusPVals = [0]*len(sortedClusPVals)
-    for i in list(range(0, len(sortedClusPVals))):
-        if sortedClusPVals[i] == 0:
-            logClusPVals[i] = math.inf
-        else:
-            logClusPVals[i] = -math.log(sortedClusPVals[i], 10)
+    if cluspValsAvail:
+        # Deal with inf issues for clusters.
+        logClusPVals = [0]*len(sortedClusPVals)
+        for i in list(range(0, len(sortedClusPVals))):
+            if sortedClusPVals[i] == 0:
+                logClusPVals[i] = math.inf
+            else:
+                logClusPVals[i] = -math.log(sortedClusPVals[i], 10)
 
     # Record the data for display.
     clusterData = {}
 
     # If a corrected cluster threshold has been applied we should display
     # cluster P values.
-    if run_query(g, 'askCExtentThreshold', 'Ask'):
+    if cluspValsAvail:
 
         clusterData['clusterPValues'] = sortedClusPVals
         clusterData['logClusterPValues'] = logClusPVals
