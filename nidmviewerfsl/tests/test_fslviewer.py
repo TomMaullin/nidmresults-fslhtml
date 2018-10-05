@@ -123,16 +123,13 @@ class test_dataset_features(unittest.TestCase):
                                        '1pl5LA3VmztgvqmAozv/pyLAcZtvhI0'
                                        'Y46pAON0rdiai68y3DoFdqgKphI0b/A',
                       'conVec': ['[1, 0, 0]'],
-                      'conVecImEx': ['X5+jv2ma7Pf7NE1z5ikBgPf25rGi5zj48'
-                                     'OFDvz5+/Jjb29uMx+NzzAqcSNM0WS6XWS'
-                                     '6XGY/HGY1G/fv9fu/oIABcqL8eK5rNZrm'
-                                     '9vc3d3V3u7+9zf3+fu7u7TCaTc8wKnMjh'
-                                     'cMhsNst4PO53DA6HQ3a7XcqyTFEUZ54QA'
-                                     'DiHN3cOptNpv3Nwd3eXL1++9Ov6+vocsw'
-                                     'InUtd1JpPJH0eJnp6e/NMBALhgf905mM/'
-                                     'n/c7B58+f8/Xr13z79i2z2ewcswInUlVV'
-                                     'RqNRjsdjDodD9vt91ut1ptNprq6u7BwAw'
-                                     'IV69YPk4XDYf3cwm81yc3PT7yB8+vQp8/'],
+                      'conVecImEx': ['Ae9JREFUeJzt3UEKwkAQAEFH8v8vr1cjY'
+                                     'uNBskjVLZDAXJthN7PWWjcAAIAP7lcPAA'
+                                     'AA7E84AAAASTgAAADpeH6YmavmAAAANvJ'
+                                     '6FNrGAQAASMIBAABIwgEAAEjCAQAASMIB'
+                                     'AABIwgEAAEhHv3L2ei0T8F9cywwAvGPjA'
+                                     'AAAJOEAAAAk4QAAACThAAAAJOEAAAAk4Q'
+                                     'AAACThAAAAJOEAAAAk4QAAACThAAAAJOE'],
                       'clusTabExtract': '<td>3<td>5090<td>5.74<td>8<td>'
                                         '18<td>50',
                       'peakTabExtract': '<td>81<td>3.11<td>0.0009411<td'
@@ -154,22 +151,21 @@ class test_dataset_features(unittest.TestCase):
                                            'tone counting vs baseline'],
                           'numExc': 1,
                           'conVec': ['[0, 1, 0]', '[1, 0, 0]'],
-                          'conVecImEx': ['/AQyPOAAAAJKIAwAA4EAcAAAAScQBAAB'
-                                         'wIA4AAIAk4gAAADgQBwAAQBJxAACcYYd'
-                                         'kGB5xAAAAJBEHAMAZdkiG4REHAABAEnE'
-                                         'AAAAciAMAACCJOAAAAA7EAQAAkEQcAAA'
-                                         'AB+IAAABIIg4AgDPskAzDIw4AAIAk4gA'
-                                         'AOMMOyTA84gAAAEgiDgAAgANxAAAAJBE'
-                                         'HAADAgTgAAACSiAMAAOBAHAAAAEnEAQB'
-                                         'whh2SYXjEAQAAkEQcAABn2CEZhkccAAA',
-                                         '2ma7Pf7NE1z5ikBgPf25rGi5zj48OFDv'
-                                         'z5+/Jjb29uMx+NzzAqcSNM0WS6XWS6XG'
-                                         'Y/HGY1G/fv9fu/oIABcqL8eK5rNZrm9v'
-                                         'c3d3V3u7+9zf3+fu7u7TCaTc8wKnMjhc'
-                                         'MhsNst4PO53DA6HQ3a7XcqyTFEUZ54QA'
-                                         'DiHN3cOptNpv3Nwd3eXL1++9Ov6+vocs'
-                                         'wInUtd1JpPJH0eJnp6e/NMBALhgf905m'
-                                         'M/n/c7B58+f8/Xr13z79i2z2ewcswInU']}
+                          'conVecImEx': ['Jzt3UEKwkAQAEFH8v8vr1cjYuNBskjVL'
+                                         'ZDAXJthN7PWWjcAAIAP7lcPAAAA7E84A'
+                                         'AAASTgAAADpeH6YmavmAAAANvJ6FNrGA'
+                                         'QAASMIBAABIwgEAAEjCAQAASMIBAABIw'
+                                         'gEAAEhHv3L2ei0T8F9cywwAvGPjAAAAJ'
+                                         'OEAAAAk4QAAACThAAAAJOEAAAAk4QAAA'
+                                         'CThAAAAJOEAAAAk4QAAACThAAAAJOEAA',
+                                         'e5JREFUeJzt3TEKwzAQAMEo+P9fvrSJi'
+                                         '2wpgWc6g4prl0Pympl5AQAA/PHePQAAA'
+                                         'HA+4QAAACThAAAApOv7Y621aw4AAOAg9'
+                                         '6vQNg4AAEASDgAAQBIOAABAEg4AAEASD'
+                                         'gAAQBIOAABAuvoI8CT3p9eAZ/JEO3Bn4'
+                                         'wAAACThAAAAJOEAAAAk4QAAACThAAAAJ'
+                                         'OEAAAAk4QAAACThAAAAJOEAAAAk4QAAA'
+                                         'CThAAAAJOEAAAAk4QAAACThAAAAJOEAA']}
 
     fsl_con_f_multiple = {'Name': 'fsl_con_f_multiple',
                           'softwareName': 'FSL',
@@ -721,6 +717,7 @@ if __name__ == "__main__":
                  "fsl_thr_clustfwep05",
                  "fsl_contrast_mask",
                  "fsl_gamma_basis",
+                 "fsl_con_f_multiple"
                  "ex_spm_contrast_mask",
                  "ex_spm_default",
                  "ex_spm_conjunction"]
