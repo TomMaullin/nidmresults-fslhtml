@@ -123,13 +123,6 @@ class test_dataset_features(unittest.TestCase):
                                        '1pl5LA3VmztgvqmAozv/pyLAcZtvhI0'
                                        'Y46pAON0rdiai68y3DoFdqgKphI0b/A',
                       'conVec': ['[1, 0, 0]'],
-                      'conVecImEx': ['Ae9JREFUeJzt3UEKwkAQAEFH8v8vr1cjY'
-                                     'uNBskjVLZDAXJthN7PWWjcAAIAP7lcPAA'
-                                     'AA7E84AAAASTgAAADpeH6YmavmAAAANvJ'
-                                     '6FNrGAQAASMIBAABIwgEAAEjCAQAASMIB'
-                                     'AABIwgEAAEhHv3L2ei0T8F9cywwAvGPjA'
-                                     'AAAJOEAAAAk4QAAACThAAAAJOEAAAAk4Q'
-                                     'AAACThAAAAJOEAAAAk4QAAACThAAAAJOE'],
                       'clusTabExtract': '<td>3<td>5090<td>5.74<td>8<td>'
                                         '18<td>50',
                       'peakTabExtract': '<td>81<td>3.11<td>0.0009411<td'
@@ -150,22 +143,7 @@ class test_dataset_features(unittest.TestCase):
                           'contrastName': ['tone counting probe vs baseline',
                                            'tone counting vs baseline'],
                           'numExc': 1,
-                          'conVec': ['[0, 1, 0]', '[1, 0, 0]'],
-                          'conVecImEx': ['Jzt3UEKwkAQAEFH8v8vr1cjYuNBskjVL'
-                                         'ZDAXJthN7PWWjcAAIAP7lcPAAAA7E84A'
-                                         'AAASTgAAADpeH6YmavmAAAANvJ6FNrGA'
-                                         'QAASMIBAABIwgEAAEjCAQAASMIBAABIw'
-                                         'gEAAEhHv3L2ei0T8F9cywwAvGPjAAAAJ'
-                                         'OEAAAAk4QAAACThAAAAJOEAAAAk4QAAA'
-                                         'CThAAAAJOEAAAAk4QAAACThAAAAJOEAA',
-                                         'e5JREFUeJzt3TEKwzAQAMEo+P9fvrSJi'
-                                         '2wpgWc6g4prl0Pympl5AQAA/PHePQAAA'
-                                         'HA+4QAAACThAAAApOv7Y621aw4AAOAg9'
-                                         '6vQNg4AAEASDgAAQBIOAABAEg4AAEASD'
-                                         'gAAQBIOAABAuvoI8CT3p9eAZ/JEO3Bn4'
-                                         'wAAACThAAAAJOEAAAAk4QAAACThAAAAJ'
-                                         'OEAAAAk4QAAACThAAAAJOEAAAAk4QAAA'
-                                         'CThAAAAJOEAAAAk4QAAACThAAAAJOEAA']}
+                          'conVec': ['[0, 1, 0]', '[1, 0, 0]']}
 
     fsl_con_f_multiple = {'Name': 'fsl_con_f_multiple',
                           'softwareName': 'FSL',
@@ -614,35 +592,6 @@ class test_dataset_features(unittest.TestCase):
                 conVec = structData['conVec'][i]
 
                 # If the contrast vector is there, record that we've seen it.
-                if conVec in line:
-
-                    conPresent[i] = True
-
-        statsFile.close()
-
-        self.assertNotIn(False, conPresent,
-                         msg='Test failed on ' + structData["Name"])
-
-    # Test to check whether the contrast vectors are being displayed correctly.
-    @data(ex_spm_conjunction, ex_spm_default)
-    def test_con_vec_image(self, structData):
-
-        # Setup
-        filePath = self.get_file_path(structData)
-        statsFile = open(os.path.join(filePath, 'report_stats.html'), "r")
-
-        conPresent = [False]*len(structData['conVecImEx'])
-
-        # Look through each line.
-        for line in statsFile:
-
-            # Check if each contrast vector is in the line.
-            for i in range(0, len(structData['conVecImEx'])):
-
-                conVec = structData['conVecImEx'][i]
-
-                # If the contrast vector image is there, record that we've
-                # seen it.
                 if conVec in line:
 
                     conPresent[i] = True
