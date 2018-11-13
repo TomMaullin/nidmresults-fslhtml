@@ -13,10 +13,11 @@ from ddt import ddt, data
 @ddt
 class test_dataset_features(unittest.TestCase):
 
+
     # Create a structure for each test datapack. These structures consist
     # of information about each datapack that should be included in the
     # display produced by the viewer.
-    fsl_con_f = {'Name': 'fsl_con_f_130',
+    fsl_con_f = {'Name': 'fsl_con_f',
                  'softwareName': 'FSL',
                  'version': '6.00',
                  'hThresh': 'P = 0.001 (uncorrected)',
@@ -31,30 +32,28 @@ class test_dataset_features(unittest.TestCase):
                                   'gB1BFLTjz/+aE6fPn1azasnT548eeAbEqWnp8d'
                                   '5IyUlJerehUKhUChUYSwJxd/L2NnkCwCoIwBQR'}
 
-    fsl_contrast_mask = {'Name': 'fsl_contrast_mask_130',
+    fsl_contrast_mask = {'Name': 'fsl_contrast_mask',
                          'softwareName': 'FSL',
                          'matchConName': 'tone counting probe vs baseline',
-                         'matchSliceImExtract': '5+fu++fQX//M9CiIsXL165cm'
-                                                'VoaAhPDA5aVlY2MTGRz+f/8I'
-                                                'c/nDlz5qabbvrZz35WVVWFxA'
-                                                '5VOXhanH1FElpdXWUmpMvlKi'
-                                                '0tfeONN4CIFB9csR80A30YI2'
-                                                'C6dpATSgF2u3337t3MmvL5fG'
-                                                'NjY8rvapoGY4Y0AARiY2Ojqq'
-                                                'qKk4gNtEh9kY2NjVQqVVpayr'}
+                         'matchSliceImExtract': 'U8AKtFotcDQJAVgMgUAAz3c4'
+                                                'HHD9LRZqgXmBdSAPhytdMgIs'
+                                                'GZehf/Ep4HfQpK7rSALgcg8Y'
+                                                'STKZLJfLiURCVVUQNol3wVBt'
+                                                '8Cl8pJGREb/f7/V6KQcFOwW4'
+                                                'C2YrkTqpBlI6HKUg2qYdsXfa'
+                                                'diRVuFASDFl3OBzkWNPUyBbH'}
 
-    fsl_thr_clustfwep05 = {'Name': 'fsl_thr_clustfwep05_130',
+    fsl_thr_clustfwep05 = {'Name': 'fsl_thr_clustfwep05',
                            'softwareName': 'FSL',
                            'version': '6.00',
                            'hThresh': 'determined by Z > 2.3',
                            'eThresh': 'cluster significance of P = 0.05',
-                           'sliceImExtract': 'gU0F7EeKZImaLEbUAZ1Qq9KGm'
-                                             'htwBlMDvMPlMcUpI5pkA7Ho5A'
-                                             'E0fVzeWacqEBEzHbtK9IqEAI/'
-                                             'iSY46wGloNUrSfWUikMokAbh6'
-                                             'Dtc5ay5JOQtK9Ba/acMa5CeA+'
-                                             'Kyt5CC8DliNGGAzb/mgp/oenI'
-                                             'M7keUZVG4arsDJ36YZn8Am1N4',
+                           'sliceImExtract': 'oCaDieVMs7l8AnQVrJ6OiokBh'
+                                             'AtVrFq5F3RX5wq9VSdoO09957'
+                                             'bygUmpiYCIVCtVqt0Wi88847p'
+                                             'VIJAXhYS9ya1GWpPZf43MQxWC'
+                                             'sCnYXtHdn0CX+NRqPwRqCWBgY'
+                                             'Gjh07ls1mZ2Zm0uk0Krxisdjt',
                            'lowSliceVal': '2.3',
                            'highSliceVal': '7.49',
                            'contrastName': 'tone counting vs baseline'}
@@ -75,39 +74,39 @@ class test_dataset_features(unittest.TestCase):
                             'highSliceVal': '7.92',
                             'contrastName': 'tone counting vs baseline'}
 
-    fsl_gamma_basis = {'Name': 'fsl_gamma_basis_130',
+    fsl_gamma_basis = {'Name': 'fsl_gamma_basis',
                        'softwareName': 'FSL',
                        'numExc': 8,
-                       'matchConName': 'tone counting vs baseline (1)',
-                       'matchSliceImExtract': 'eDwb17966trQUCgaWlpcOHD7'
-                                              'uue+TIkXA4jF6cjuOgyHz9N3'
-                                              '9T07RarTY9Pf3CCy+k02lUxK'
-                                              'BTny17unDYqt+oyX7VQsJXru'
-                                              'uiJ16lUkmn05/85CenpqZ6en'
-                                              'oWFxfRtdZxnD179gghLl68eP'
-                                              '369TfeeOPcuXM+n+++++6bmZ'
-                                              'lhI6kTJ04sLy+je+bx48e//u'}
+                       'matchConName': 'tone counting vs baseline (1)&n'
+                                       'bsp',
+                       'matchSliceImExtract': 'mho6KWXXjp69CgC7fl8Hr1S6'
+                                              'PthJLDsXXkgp5nNTk1NnTlzJ'
+                                              'pFI9Pb2PvbYYw8++GA0Gv23y'
+                                              '5dTqRQ8+9XVVYhQAuSqVnIV9'
+                                              '508AqOzLQ/0AiqgadrZs2fn5'
+                                              'uYef/zxubm5733ve1/72teOH'
+                                              'z/+D//wD0B9fuXFF0tCPFCrH'}
 
-    fsl_group_ols = {'Name': 'fsl_group_ols_130',
+    fsl_group_ols = {'Name': 'fsl_group_ols',
                      'softwareName': 'FSL',
                      'clusTabExtract': '4<td>399<td>0.000335<td>3.47<td'
                                        '>4.05<td>32<td>20<td>8',
                      'peakTabExtract': '<td>7<td>5.24<td>8.029e-08<'
                                        'td>7.10<td>-6<td>2<td>60'}
 
-    fsl_group_wls = {'Name': 'fsl_group_wls_130',
+    fsl_group_wls = {'Name': 'fsl_group_wls',
                      'softwareName': 'FSL',
                      'clusTabExtract': '<td>7<td>1380<td>2.93e-10<td>9.'
                                        '53<td>5.32<td>-52<td>-2<td>54',
                      'peakTabExtract': '<td>7<td>5.32<td>5.188e-08<td>7'
                                        '.28<td>-52<td>-2<td>54'}
 
-    fsl_default = {'Name': 'fsl_default_130',
+    fsl_default = {'Name': 'fsl_default',
                    'softwareName': 'FSL',
-                   'clusTabExtract': '<td>147<td>795<td>7.47<td>40.6<td'
-                                     '>25<td>15</tr>',
-                   'peakTabExtract': '<td>147<td>7.47<td>4.008e-14<td>1'
-                                     '3.40<td>40.6<td>25<td>15'}
+                   'clusTabExtract': '<td>149<td>795<td>7.47<td>40.625<'
+                                     'td>25<td>15</tr>',
+                   'peakTabExtract': '<td>149<td>7.47<td>4.008e-14<td>1'
+                                     '3.40<td>40.625<td>25<td>15</tr>'}
 
     ex_spm_default = {'Name': 'ex_spm_default',
                       'softwareName': 'SPM',
@@ -169,6 +168,24 @@ class test_dataset_features(unittest.TestCase):
                                          'OEAAAAk4QAAACThAAAAJOEAAAAk4QAAA'
                                          'CThAAAAJOEAAAAk4QAAACThAAAAJOEAA']}
 
+    fsl_con_f_multiple = {'Name': 'fsl_con_f_multiple',
+                          'softwareName': 'FSL',
+                          'version': '6.00',
+                          'numExc': 5,
+                          'matchConName': 'tone counting vs baseline & to'
+                                          'ne counting probe',
+                          'matchSliceImExtract': 'JzxCCxFBgnLZTH4wEDwriEK'
+                                                 'u31erZte71ejBbX0JqQ4gQt'
+                                                 'ESXTyluW5fF4iJy4iKbxYK1'
+                                                 'AfjQR0sEkITnBkLTE0/BGmG'
+                                                 'Xdbtfr9fZ6vT0iDg8BnZDHi'
+                                                 'AWEzNc0rdvtgkohWkF7YH+y'
+                                                 'ojAMYmcaM1EspAqtcK/Xo9m'
+                                                 'RxYCXgkqJDrlQ5fKk0+k4jo'
+                                                 'ONAJHgIe12G88kncL5CEqHC'
+                                                 'z3ir16vR69zuVyYNb9dMKfU'
+                                                 'kUqKD55rhz3rQHIJRAK5hMl'}
+
     # Initiate a blank string.
     def setUp(self):
         self.testString = ""
@@ -184,7 +201,7 @@ class test_dataset_features(unittest.TestCase):
 
     # Test to see if the software name has been recorded correctly.
     @data(fsl_con_f, fsl_thr_clustfwep05, ex_spm_contrast_mask,
-          ex_spm_default, ex_spm_conjunction)
+          ex_spm_default, ex_spm_conjunction, fsl_con_f_multiple)
     def test_software_name(self, structData):
 
         # Setup
@@ -209,7 +226,7 @@ class test_dataset_features(unittest.TestCase):
 
     # Test to see if the software version has been recorded correctly.
     @data(fsl_con_f, fsl_thr_clustfwep05, ex_spm_contrast_mask,
-          ex_spm_default, ex_spm_conjunction)
+          ex_spm_default, ex_spm_conjunction, fsl_con_f_multiple)
     def test_software_num(self, structData):
 
         # Setup
@@ -477,7 +494,8 @@ class test_dataset_features(unittest.TestCase):
                         msg='Test failed on ' + structData["Name"])
 
     # Checks if the correct number of pages have been generated.
-    @data(fsl_con_f, ex_spm_default, ex_spm_conjunction, fsl_gamma_basis)
+    @data(fsl_con_f, ex_spm_default, ex_spm_conjunction, fsl_gamma_basis,
+          fsl_con_f_multiple)
     def test_multiple_page_gen(self, structData):
 
         # Setup
@@ -516,7 +534,7 @@ class test_dataset_features(unittest.TestCase):
                         msg='Test failed on ' + structData["Name"])
 
     # Test to check the correct contrast name matches the correct slice image.
-    @data(fsl_contrast_mask, fsl_gamma_basis)
+    @data(fsl_contrast_mask, fsl_gamma_basis, fsl_con_f_multiple)
     def test_matching_con_name(self, structData):
 
         # Setup
@@ -606,35 +624,6 @@ class test_dataset_features(unittest.TestCase):
         self.assertNotIn(False, conPresent,
                          msg='Test failed on ' + structData["Name"])
 
-    # Test to check whether the contrast vectors are being displayed correctly.
-    @data(ex_spm_conjunction, ex_spm_default)
-    def test_con_vec_image(self, structData):
-
-        # Setup
-        filePath = self.get_file_path(structData)
-        statsFile = open(os.path.join(filePath, 'report_stats.html'), "r")
-
-        conPresent = [False]*len(structData['conVecImEx'])
-
-        # Look through each line.
-        for line in statsFile:
-
-            # Check if each contrast vector is in the line.
-            for i in range(0, len(structData['conVecImEx'])):
-
-                conVec = structData['conVecImEx'][i]
-
-                # If the contrast vector image is there, record that we've
-                # seen it.
-                if conVec in line:
-
-                    conPresent[i] = True
-
-        statsFile.close()
-
-        self.assertNotIn(False, conPresent,
-                         msg='Test failed on ' + structData["Name"])
-
     # Test to check whether the cluster table statistics are being
     # displayed correctly.
     @data(ex_spm_default, fsl_default, fsl_group_wls, fsl_group_ols)
@@ -696,10 +685,11 @@ if __name__ == "__main__":
 
         os.makedirs(dataDir)
 
-    dataNames = ["fsl_con_f_130",
-                 "fsl_thr_clustfwep05_130",
-                 "fsl_contrast_mask_130",
-                 "fsl_gamma_basis_130",
+    dataNames = ["fsl_con_f",
+                 "fsl_thr_clustfwep05",
+                 "fsl_contrast_mask",
+                 "fsl_gamma_basis",
+                 "fsl_con_f_multiple"
                  "ex_spm_contrast_mask",
                  "ex_spm_default",
                  "ex_spm_conjunction"]
@@ -718,7 +708,7 @@ if __name__ == "__main__":
 
         # Request from neurovault api
         req = urllib.request.Request(
-              "http://neurovault.org/api/collections/2210/nidm_results")
+              "http://neurovault.org/api/collections/4249/nidm_results")
         resp = urllib.request.urlopen(req)
         readResp = resp.read()
         data = json.loads(readResp.decode('utf-8'))
