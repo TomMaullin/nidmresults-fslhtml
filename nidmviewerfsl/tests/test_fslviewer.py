@@ -624,6 +624,36 @@ class test_dataset_features(unittest.TestCase):
         self.assertNotIn(False, conPresent,
                          msg='Test failed on ' + structData["Name"])
 
+    
+    # Test to check whether the contrast vectors are being displayed correctly.
+    @data(ex_spm_conjunction, ex_spm_default)
+    def test_con_vec_image(self, structData):
+
+        # Setup
+        filePath = self.get_file_path(structData)
+        statsFile = open(os.path.join(filePath, 'report_stats.html'), "r")
+
+        conPresent = [False]*len(structData['conVecImEx'])
+
+        # Look through each line.
+        for line in statsFile:
+
+            # Check if each contrast vector is in the line.
+            for i in range(0, len(structData['conVecImEx'])):
+
+                conVec = structData['conVecImEx'][i]
+
+                # If the contrast vector image is there, record that we've
+                # seen it.
+                if conVec in line:
+
+                    conPresent[i] = True
+
+        statsFile.close()
+
+        self.assertNotIn(False, conPresent,
+                         msg='Test failed on ' + structData["Name"])
+
     # Test to check whether the cluster table statistics are being
     # displayed correctly.
     @data(ex_spm_default, fsl_default, fsl_group_wls, fsl_group_ols)
